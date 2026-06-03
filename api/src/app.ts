@@ -7,12 +7,15 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import morgan from 'morgan';
 import { config } from './config';
 import { globalRateLimiter } from './middlewares/rateLimiter.middleware';
 import { errorHandler, notFoundHandler } from './middlewares/error.middleware';
 import routes from './routes';
 
 const app = express();
+
+app.use(morgan('dev')); // Colored console logging
 
 // ─── Security Middlewares ─────────────────────────────────────
 // Helmet protege configurando varios HTTP headers de seguridad
