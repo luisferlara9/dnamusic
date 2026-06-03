@@ -35,8 +35,4 @@ export const loginRateLimiter = rateLimit({
     success: false,
     message: 'Demasiados intentos de login. Intenta de nuevo más tarde.',
   },
-  // Usar IP + email como clave para bloqueo más granular
-  keyGenerator: (req) => {
-    return `${req.ip}-${req.body?.email || 'unknown'}`;
-  },
 });
