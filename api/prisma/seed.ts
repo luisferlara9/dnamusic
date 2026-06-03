@@ -49,22 +49,25 @@ async function main() {
 
   console.log('✅ Sedes creadas');
 
-  // 3. Crear Usuarios
-  const passwordAdmin = await bcrypt.hash('Admin123!', 10);
-  const passwordOperador = await bcrypt.hash('Oper123!', 10);
-
-  // ADMIN — Ve todo
-  await prisma.user.create({
-    data: {
+  // 3. Crear Administrador Principal Original
+  const adminPassword = await bcrypt.hash('Admin123!', 10);
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@dnamusic.co' },
+    update: {
+      password: adminPassword,
+    },
+    create: {
       nombre: 'Administrador Principal',
       email: 'admin@dnamusic.co',
-      password: passwordAdmin,
+      password: adminPassword,
       rol: 'ADMIN',
-      // No tiene sede asociada
     },
   });
 
+  console.log(`✅ Administrador maestro original restaurado: ${admin.email} / Admin123!`);
+
   // Operador BOG
+  const passwordOperador = await bcrypt.hash('Oper123!', 10);
   await prisma.user.create({
     data: {
       nombre: 'Operador Bogotá',

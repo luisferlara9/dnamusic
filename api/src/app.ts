@@ -12,6 +12,7 @@ import { config } from './config';
 import { globalRateLimiter } from './middlewares/rateLimiter.middleware';
 import { errorHandler, notFoundHandler } from './middlewares/error.middleware';
 import routes from './routes';
+import path from 'path';
 
 const app = express();
 
@@ -19,7 +20,7 @@ app.use(morgan('dev')); // Colored console logging
 
 // ─── Security Middlewares ─────────────────────────────────────
 // Helmet protege configurando varios HTTP headers de seguridad
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false }));
 
 // CORS — Solo permite solicitudes desde el frontend (configurado)
 app.use(
@@ -39,6 +40,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 // ─── Rutas ────────────────────────────────────────────────────
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.use('/api', routes);
 
 // ─── Error Handling ───────────────────────────────────────────

@@ -2,13 +2,15 @@
 // DNA Music API — Rutas de Autenticación
 // POST /api/auth/register — Registro de usuarios
 // POST /api/auth/login    — Login con JWT
+// GET /api/auth/verify    — Verificación de sesión
 // ──────────────────────────────────────────────────────────────
 
 import { Router } from 'express';
-import { register, login } from '../controllers/auth.controller';
+import { register, login, verifySession } from '../controllers/auth.controller';
 import { validate } from '../middlewares/validate.middleware';
 import { registerSchema, loginSchema } from '../validators/schemas';
 import { loginRateLimiter } from '../middlewares/rateLimiter.middleware';
+import { authenticate } from '../middlewares/auth.middleware';
 
 const router = Router();
 
@@ -17,5 +19,8 @@ router.post('/register', validate(registerSchema), register);
 
 // POST /api/auth/login — Con rate limiting específico para login
 router.post('/login', loginRateLimiter, validate(loginSchema), login);
+
+// GET /api/auth/verify — Verificación de sesión
+router.get('/verify', authenticate, verifySession);
 
 export default router;

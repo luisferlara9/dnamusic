@@ -10,20 +10,27 @@
    cd dnamusic
    ```
 
-2. Instala dependencias y prepara el **Backend**:
+2. Inicia la base de datos utilizando Docker Compose (en la raíz del proyecto):
+   ```bash
+   docker compose up -d
+   ```
+   *(Esto levantará un contenedor de PostgreSQL en el puerto `5432` con usuario `postgres`, contraseña `123456` y base de datos `dnamusic`)*
+
+3. Instala dependencias y prepara el **Backend**:
    ```bash
    cd api
    npm install
    cp .env.example .env
    npx prisma generate
-   npx prisma migrate dev --name init
+   npx prisma db push
    npm run seed
    npm run dev
    ```
    > El servidor backend correrá en `http://localhost:3000`
 
-3. Instala dependencias y arranca el **Frontend** (en otra terminal):
+4. Instala dependencias y arranca el **Frontend** (en otra terminal):
    ```bash
+   cd ..
    cd web
    npm install
    npm run dev
@@ -48,9 +55,9 @@ La base de datos se inicializa con los siguientes usuarios de prueba:
 ## 4. Decisiones técnicas
 
 - **Backend:** Express + TypeScript. Express por ser el estándar más ligero y robusto. TypeScript para type safety de extremo a extremo.
-- **Base de Datos:** SQLite + Prisma. Elegido por simplicidad de configuración para la prueba local (no requiere levantar un container Docker para el revisor), manteniendo todo el tipado fuerte que ofrece Prisma.
+- **Base de Datos:** PostgreSQL + Prisma. Se migró el motor de datos a PostgreSQL (el motor preferido de producción de la prueba) y se suministró un archivo `docker-compose.yml` para simplificar la inicialización del motor de base de datos en local con un solo comando.
 - **Arquitectura:** Estructura modular (rutas, controladores, middlewares, schemas, lib) para separar responsabilidades.
-- **Frontend:** React (Vite) + TypeScript. Framework moderno, rápido, con separación de componentes.
+- **Frontend:** React (Vite) + TypeScript. Framework moderno, rápido, con separación de componentes y diseño cyberpunk neón.
 
 ## 5. Decisiones de seguridad (Implementadas)
 
@@ -68,8 +75,8 @@ La base de datos se inicializa con los siguientes usuarios de prueba:
 
 1. Movería la autenticación JWT de headers a **Cookies HttpOnly** para mitigar completamente los ataques XSS.
 2. Implementaría **Tests** unitarios y de integración con Jest/Supertest.
-3. Usaría **PostgreSQL** montado en un contenedor Docker con Docker Compose para desarrollo local.
-4. Añadiría **Logs Estructurados** (Winston/Pino) para tener mejor trazabilidad en producción.
+3. Añadiría **Logs Estructurados** (Winston/Pino) para tener mejor trazabilidad en producción.
+4. Crearía un flujo completo de refresh tokens para extender las sesiones de manera segura.
 
 ## 7. Diagrama de la base de datos
 

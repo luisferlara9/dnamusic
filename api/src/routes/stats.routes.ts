@@ -9,7 +9,7 @@ import { getStats } from '../controllers/stats.controller';
 
 const router = Router();
 
-// GET /api/stats — Solo ADMIN
-router.get('/', authenticate, authorize('ADMIN'), getStats);
+// GET /api/stats — ADMIN y OPERADOR
+router.get('/', authenticate, authorize('ADMIN', 'OPERADOR'), getStats);
 
 export default router;

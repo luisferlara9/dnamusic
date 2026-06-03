@@ -8,7 +8,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -67,6 +67,12 @@ model Estudiante {
   programa            String   // Texto libre — programa que cursa
   estado              String   @default("ACTIVO") // ACTIVO | INACTIVO | RETIRADO
   fechaInscripcion    DateTime @default(now())
+  
+  // Nuevos campos de perfil y fechas
+  fotoPerfil          String?  // URL/Ruta de la imagen local
+  fechaInactividad    DateTime?
+  fechaRetiro         DateTime?
+  fechaReintegro      DateTime?
 
   // Relación con sede
   sedeId              Int

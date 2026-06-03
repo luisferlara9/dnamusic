@@ -28,7 +28,7 @@ export const registerSchema = z.object({
       'La contraseña debe incluir mayúscula, minúscula, número y carácter especial'
     ),
   rol: z.enum(['ADMIN', 'OPERADOR'], {
-    errorMap: () => ({ message: 'El rol debe ser ADMIN o OPERADOR' }),
+    message: 'El rol debe ser ADMIN o OPERADOR',
   }),
   sedeId: z.number().int().positive().optional(),
 });
@@ -102,14 +102,55 @@ export const createEstudianteSchema = z.object({
     .enum(['ACTIVO', 'INACTIVO', 'RETIRADO'])
     .optional()
     .default('ACTIVO'),
-  sedeId: z.number().int().positive('El ID de sede debe ser un número positivo'),
+  sedeId: z.coerce.number().int().positive('El ID de sede debe ser un número positivo'),
   fechaInscripcion: z
     .string()
     .datetime()
     .optional(),
+  fotoPerfil: z.string().optional(),
 });
 
 export const updateEstudianteSchema = createEstudianteSchema.partial();
+
+// ─── Operador Schemas ─────────────────────────────────────────
+
+export const createOperadorSchema = z.object({
+  nombre: z
+    .string()
+    .min(2, 'El nombre debe tener al menos 2 caracteres')
+    .max(100, 'El nombre no puede exceder 100 caracteres')
+    .trim(),
+  email: z
+    .string()
+    .email('El email no es válido')
+    .max(255, 'El email no puede exceder 255 caracteres')
+    .toLowerCase()
+    .trim(),
+  password: z
+    .string()
+    .min(8, 'La contraseña debe tener al menos 8 caracteres')
+    .max(72, 'La contraseña no puede exceder 72 caracteres')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/,
+      'La contraseña debe incluir mayúscula, minúscula, número y carácter especial'
+    ),
+  rol: z.enum(['ADMIN', 'OPERADOR']),
+  sedeId: z.coerce.number().int().positive().optional().nullable(),
+});
+
+export const updateOperadorSchema = createOperadorSchema.partial().extend({
+  password: z
+    .string()
+    .min(8, 'La contraseña debe tener al menos 8 caracteres')
+    .max(72, 'La contraseña no puede exceder 72 caracteres')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/,
+      'La contraseña debe incluir mayúscula, minúscula, número y carácter especial'
+    )
+    .optional()
+    .or(z.literal(''))
+    .or(z.null()),
+});
 
 // ─── Types inferidos ─────────────────────────────────────────
 
@@ -119,3 +160,5 @@ export type CreateSedeInput = z.infer<typeof createSedeSchema>;
 export type UpdateSedeInput = z.infer<typeof updateSedeSchema>;
 export type CreateEstudianteInput = z.infer<typeof createEstudianteSchema>;
 export type UpdateEstudianteInput = z.infer<typeof updateEstudianteSchema>;
+export type CreateOperadorInput = z.infer<typeof createOperadorSchema>;
+export type UpdateOperadorInput = z.infer<typeof updateOperadorSchema>;

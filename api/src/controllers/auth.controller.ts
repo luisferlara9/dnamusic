@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../lib/prisma';
 import { config } from '../config';
 import { RegisterInput, LoginInput } from '../validators/schemas';
+import { AuthRequest } from '../middlewares/auth.middleware';
 
 /**
  * Función helper para mitigar Timing Attacks en el Login.
@@ -84,7 +85,7 @@ export const login = async (req: Request<{}, {}, LoginInput>, res: Response): Pr
         sedeId: user.sedeId,
       },
       config.jwtSecret,
-      { expiresIn: config.jwtExpiresIn }
+      { expiresIn: config.jwtExpiresIn as any }
     );
 
     res.status(200).json({
@@ -103,6 +104,42 @@ export const login = async (req: Request<{}, {}, LoginInput>, res: Response): Pr
     });
   } catch (error) {
     console.error('Error en login:', error);
+    res.status(500).json({ success: false, message: 'Error interno del servidor' });
+  }
+};
+
+export const verifySession = async (req: AuthRequest, res: Response): Promise<void> => {
+  // If the request reaches here, it means the authMiddleware successfully validated the token
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ success: false, message: 'Token inválido' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        nombre: true,
+        email: true,
+        rol: true,
+        sedeId: true,
+      }
+    });
+
+    if (!user) {
+      res.status(401).json({ success: false, message: 'Usuario no encontrado' });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Sesión válida',
+      data: { user },
+    });
+  } catch (error) {
+    console.error('Error en verifySession:', error);
     res.status(500).json({ success: false, message: 'Error interno del servidor' });
   }
 };

@@ -16,11 +16,37 @@ export const getSedes = async (req: Request, res: Response): Promise<void> => {
 };
 
 // GET /api/sedes/:id
-export const getSedeById = async (req: Request, res: Response): Promise<void> => {
+export const getSedeById = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const sede = await prisma.sede.findUnique({
       where: { id: parseInt(id, 10) },
+      include: {
+        usuarios: {
+          select: {
+            id: true,
+            nombre: true,
+            email: true,
+            rol: true,
+            createdAt: true,
+          },
+          orderBy: { nombre: 'asc' },
+        },
+        estudiantes: {
+          select: {
+            id: true,
+            nombreCompleto: true,
+            email: true,
+            telefono: true,
+            documentoIdentidad: true,
+            programa: true,
+            estado: true,
+            fotoPerfil: true,
+            fechaInscripcion: true,
+          },
+          orderBy: { nombreCompleto: 'asc' },
+        },
+      },
     });
 
     if (!sede) {
@@ -73,7 +99,7 @@ export const updateSede = async (req: Request<{ id: string }, {}, UpdateSedeInpu
 };
 
 // DELETE /api/sedes/:id
-export const deleteSede = async (req: Request, res: Response): Promise<void> => {
+export const deleteSede = async (req: Request<{ id: string }>, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const sedeId = parseInt(id, 10);

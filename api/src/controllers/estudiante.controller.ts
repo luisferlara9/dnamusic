@@ -2,6 +2,7 @@ import { Response } from 'express';
 import prisma from '../lib/prisma';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { CreateEstudianteInput, UpdateEstudianteInput } from '../validators/schemas';
+import { sendRegistrationEmail } from '../lib/mailer';
 
 /**
  * Función auxiliar para obtener el filtro de sede basado en el rol.
@@ -38,7 +39,7 @@ export const getEstudianteById = async (req: AuthRequest, res: Response): Promis
 
     const estudiante = await prisma.estudiante.findFirst({
       where: {
-        id: parseInt(id, 10),
+        id: parseInt(id as string, 10),
         ...getSedeFilter(req.user), // Restricción de sede
       },
       include: {
@@ -56,6 +57,22 @@ export const getEstudianteById = async (req: AuthRequest, res: Response): Promis
     res.status(200).json({ success: true, data: estudiante });
   } catch (error) {
     console.error('Error en getEstudianteById:', error);
+    res.status(500).json({ success: false, message: 'Error interno del servidor' });
+  }
+};
+
+// GET /api/estudiantes/programas
+export const getProgramas = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const grupos = await prisma.estudiante.groupBy({
+      by: ['programa'],
+      where: { programa: { not: '' } },
+      orderBy: { programa: 'asc' },
+    });
+    const programas = grupos.map(g => g.programa).filter(Boolean);
+    res.status(200).json({ success: true, data: programas });
+  } catch (error) {
+    console.error('Error en getProgramas:', error);
     res.status(500).json({ success: false, message: 'Error interno del servidor' });
   }
 };
@@ -84,12 +101,21 @@ export const createEstudiante = async (req: AuthRequest, res: Response): Promise
     // Si es ADMIN, toma la sedeId que viene en el payload (ya validada por Zod).
     const assignedSedeId = req.user?.rol === 'ADMIN' ? data.sedeId : req.user?.sedeId!;
 
+    let fotoPerfilUrl = null;
+    if (req.file) {
+      fotoPerfilUrl = `/uploads/profiles/${req.file.filename}`;
+    }
+
     const newEstudiante = await prisma.estudiante.create({
       data: {
         ...data,
         sedeId: assignedSedeId,
+        fotoPerfil: fotoPerfilUrl,
       },
     });
+
+    // Enviar correo en segundo plano
+    sendRegistrationEmail(newEstudiante.email, newEstudiante.nombreCompleto, newEstudiante.documentoIdentidad);
 
     res.status(201).json({ success: true, message: 'Estudiante creado', data: newEstudiante });
   } catch (error) {
@@ -107,7 +133,7 @@ export const updateEstudiante = async (req: AuthRequest, res: Response): Promise
     // Verificar existencia Y permisos de sede
     const existingEstudiante = await prisma.estudiante.findFirst({
       where: {
-        id: parseInt(id, 10),
+        id: parseInt(id as string, 10),
         ...getSedeFilter(req.user),
       },
     });
@@ -131,7 +157,7 @@ export const updateEstudiante = async (req: AuthRequest, res: Response): Promise
             { email: data.email ?? undefined },
             { documentoIdentidad: data.documentoIdentidad ?? undefined },
           ],
-          NOT: { id: parseInt(id, 10) }, // Excluir el estudiante actual
+          NOT: { id: parseInt(id as string, 10) }, // Excluir el estudiante actual
         },
       });
 
@@ -141,9 +167,29 @@ export const updateEstudiante = async (req: AuthRequest, res: Response): Promise
       }
     }
 
+    // Procesamiento de foto
+    let fotoPerfilUrl = existingEstudiante.fotoPerfil;
+    if (req.file) {
+      fotoPerfilUrl = `/uploads/profiles/${req.file.filename}`;
+    }
+
+    // Procesamiento de fechas de estado
+    let dateUpdates: any = {};
+    if (data.estado && data.estado !== existingEstudiante.estado) {
+      if (data.estado === 'INACTIVO') dateUpdates.fechaInactividad = new Date();
+      if (data.estado === 'RETIRADO') dateUpdates.fechaRetiro = new Date();
+      if (data.estado === 'ACTIVO' && (existingEstudiante.estado === 'INACTIVO' || existingEstudiante.estado === 'RETIRADO')) {
+        dateUpdates.fechaReintegro = new Date();
+      }
+    }
+
     const updatedEstudiante = await prisma.estudiante.update({
-      where: { id: parseInt(id, 10) },
-      data,
+      where: { id: parseInt(id as string, 10) },
+      data: {
+        ...data,
+        ...dateUpdates,
+        fotoPerfil: fotoPerfilUrl
+      },
     });
 
     res.status(200).json({ success: true, message: 'Estudiante actualizado', data: updatedEstudiante });
@@ -161,7 +207,7 @@ export const deleteEstudiante = async (req: AuthRequest, res: Response): Promise
     // Verificar existencia Y permisos de sede antes de eliminar
     const existingEstudiante = await prisma.estudiante.findFirst({
       where: {
-        id: parseInt(id, 10),
+        id: parseInt(id as string, 10),
         ...getSedeFilter(req.user),
       },
     });
@@ -172,7 +218,7 @@ export const deleteEstudiante = async (req: AuthRequest, res: Response): Promise
     }
 
     await prisma.estudiante.delete({
-      where: { id: parseInt(id, 10) },
+      where: { id: parseInt(id as string, 10) },
     });
 
     res.status(200).json({ success: true, message: 'Estudiante eliminado correctamente' });

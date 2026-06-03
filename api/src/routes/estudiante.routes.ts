@@ -13,7 +13,9 @@ import {
   createEstudiante,
   updateEstudiante,
   deleteEstudiante,
+  getProgramas
 } from '../controllers/estudiante.controller';
+import { uploadProfilePhoto } from '../middlewares/upload.middleware';
 
 const router = Router();
 
@@ -23,14 +25,17 @@ router.use(authenticate);
 // GET /api/estudiantes — Listar (ADMIN: todos, OPERADOR: solo su sede)
 router.get('/', getEstudiantes);
 
+// GET /api/estudiantes/programas — Obtener programas únicos (DEBE ir antes de /:id)
+router.get('/programas', getProgramas);
+
 // GET /api/estudiantes/:id — Obtener por ID (con verificación de sede)
 router.get('/:id', getEstudianteById);
 
 // POST /api/estudiantes — Crear estudiante
-router.post('/', validate(createEstudianteSchema), createEstudiante);
+router.post('/', uploadProfilePhoto.single('foto'), validate(createEstudianteSchema), createEstudiante);
 
 // PUT /api/estudiantes/:id — Actualizar estudiante
-router.put('/:id', validate(updateEstudianteSchema), updateEstudiante);
+router.put('/:id', uploadProfilePhoto.single('foto'), validate(updateEstudianteSchema), updateEstudiante);
 
 // DELETE /api/estudiantes/:id — Eliminar estudiante
 router.delete('/:id', deleteEstudiante);
