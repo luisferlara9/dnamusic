@@ -1,0 +1,80 @@
+// ──────────────────────────────────────────────────────────────
+// DNA Music — Esquema de Base de Datos (Prisma)
+// Sistema de Gestión de Estudiantes por Sede
+// ──────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ──────────────────────────────────────────────────────────────
+// Enums simulados con strings (SQLite no soporta enums nativos)
+// Roles: ADMIN | OPERADOR
+// EstadoSede: ACTIVA | INACTIVA
+// EstadoEstudiante: ACTIVO | INACTIVO | RETIRADO
+// ──────────────────────────────────────────────────────────────
+
+/// Usuarios del sistema (ADMIN u OPERADOR)
+model User {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  email     String   @unique
+  password  String   // Hash bcrypt — nunca texto plano
+  rol       String   @default("OPERADOR") // ADMIN | OPERADOR
+
+  // Relación: un OPERADOR pertenece a una sede
+  sedeId    Int?
+  sede      Sede?    @relation(fields: [sedeId], references: [id])
+
+  // Auditoría
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+/// Sedes físicas de DNA Music
+model Sede {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  ciudad    String
+  direccion String
+  estado    String   @default("ACTIVA") // ACTIVA | INACTIVA
+
+  // Relaciones
+  usuarios    User[]
+  estudiantes Estudiante[]
+
+  // Auditoría
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sedes")
+}
+
+/// Estudiantes inscritos en una sede
+model Estudiante {
+  id                  Int      @id @default(autoincrement())
+  nombreCompleto      String
+  email               String   @unique
+  telefono            String
+  documentoIdentidad  String   @unique
+  programa            String   // Texto libre — programa que cursa
+  estado              String   @default("ACTIVO") // ACTIVO | INACTIVO | RETIRADO
+  fechaInscripcion    DateTime @default(now())
+
+  // Relación con sede
+  sedeId              Int
+  sede                Sede     @relation(fields: [sedeId], references: [id])
+
+  // Auditoría
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("estudiantes")
+}
