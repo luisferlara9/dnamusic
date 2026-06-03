@@ -6,13 +6,71 @@ services:
     container_name: dnamusic_db
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123456
-      POSTGRES_DB: dnamusic
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-123456}
+      POSTGRES_DB: ${DB_NAME:-dnamusic}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - dnamusic-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-dnamusic}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: dnamusic_api
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-123456}@db:5432/${DB_NAME:-dnamusic}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-dna-music-jwt-secret-change-in-production-2024}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      PORT: 3000
+      NODE_ENV: production
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+      RUN_SEED: ${RUN_SEED:-true}
+      # Email configurations
+      EMAIL_HOST: ${EMAIL_HOST:-smtp.gmail.com}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_SECURE: ${EMAIL_SECURE:-false}
+      EMAIL_USER: ${EMAIL_USER:-tu_correo@gmail.com}
+      EMAIL_PASS: ${EMAIL_PASS:-tu_app_password_de_16_digitos}
+      EMAIL_FROM: ${EMAIL_FROM:-"DNA Music Academy <tu_correo@gmail.com>"}
+    volumes:
+      - ./api/uploads:/usr/src/app/uploads
+    networks:
+      - dnamusic-net
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    container_name: dnamusic_web
+    restart: always
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    networks:
+      - dnamusic-net
+    depends_on:
+      - api
 
 volumes:
   pgdata:
+
+networks:
+  dnamusic-net:
+    driver: bridge

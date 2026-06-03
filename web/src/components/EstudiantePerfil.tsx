@@ -6,6 +6,7 @@ import {
   CheckCircle, AlertCircle, XCircle, RotateCcw
 } from 'lucide-react';
 import type { Estudiante } from '../pages/Estudiantes';
+import { API_BASE_URL } from '../lib/api';
 
 // ──────────────────────────────────────────────────────────
 // Helpers
@@ -178,7 +179,7 @@ export default function EstudiantePerfil({ estudiante: e, onClose, onEdit }: Est
                   transition={{ delay: 0.15, type: 'spring' }}
                   className="w-24 h-24 rounded-3xl overflow-hidden border-2 border-brand-500/40 shadow-[0_0_30px_rgba(99,102,241,0.3)]"
                 >
-                  <img src={`http://localhost:3000${e.fotoPerfil}`} alt={e.nombreCompleto} className="w-full h-full object-cover" />
+                  <img src={`${API_BASE_URL}${e.fotoPerfil}`} alt={e.nombreCompleto} className="w-full h-full object-cover" />
                 </motion.div>
               ) : (
                 <motion.div

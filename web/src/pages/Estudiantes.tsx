@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, Edit2, Trash2, Search, Music2, Users, Filter } from 'lucide-react';
 import Swal from 'sweetalert2';
-import api from '../lib/api';
+import api, { API_BASE_URL } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import EstudianteForm from '../components/EstudianteForm';
 import EstudiantePerfil from '../components/EstudiantePerfil';
@@ -49,7 +49,7 @@ function Avatar({ nombre, fotoUrl, size = 'md' }: { nombre: string; fotoUrl?: st
   if (fotoUrl) {
     return (
       <div className={`${dims} rounded-2xl overflow-hidden flex-shrink-0 shadow-[0_0_15px_rgba(99,102,241,0.3)] border border-brand-500/30 ring-2 ring-transparent group-hover:ring-brand-500/50 transition-all duration-300 relative`}>
-        <img src={`http://localhost:3000${fotoUrl}`} alt={nombre} className="w-full h-full object-cover" />
+        <img src={`${API_BASE_URL}${fotoUrl}`} alt={nombre} className="w-full h-full object-cover" />
       </div>
     );
   }

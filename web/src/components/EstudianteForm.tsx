@@ -5,7 +5,7 @@ import {
   MapPin, Music2, CheckCircle2, ChevronRight, ChevronLeft, Search, UploadCloud, Image as ImageIcon
 } from 'lucide-react';
 import Swal from 'sweetalert2';
-import api from '../lib/api';
+import api, { API_BASE_URL } from '../lib/api';
 import type { Estudiante } from '../pages/Estudiantes';
 
 /* ─────────────────────────────────────────────
@@ -279,7 +279,7 @@ export default function EstudianteForm({ estudiante, onClose, onSuccess, isAdmin
 
   // Foto states
   const [fotoFile, setFotoFile] = useState<File | null>(null);
-  const [fotoPreview, setFotoPreview] = useState<string | null>(estudiante?.fotoPerfil ? `http://localhost:3000${estudiante.fotoPerfil}` : null);
+  const [fotoPreview, setFotoPreview] = useState<string | null>(estudiante?.fotoPerfil ? `${API_BASE_URL}${estudiante.fotoPerfil}` : null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, Building, Users, Shield, Music2, Search } from 'lucide-react';
-import api from '../lib/api';
+import api, { API_BASE_URL } from '../lib/api';
 
 interface SedeDetalleProps {
   sedeId: number;
@@ -34,7 +34,7 @@ function StudentRow({ est }: { est: any }) {
     <div className="flex items-center gap-3 py-3 border-b border-white/5 last:border-0 hover:bg-white/3 px-2 rounded-xl transition-colors group">
       {est.fotoPerfil ? (
         <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/10 flex-shrink-0">
-          <img src={`http://localhost:3000${est.fotoPerfil}`} alt={est.nombreCompleto} className="w-full h-full object-cover" />
+          <img src={`${API_BASE_URL}${est.fotoPerfil}`} alt={est.nombreCompleto} className="w-full h-full object-cover" />
         </div>
       ) : (
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600/80 to-neon-purple/60 border border-white/10 flex items-center justify-center flex-shrink-0">

@@ -132,3 +132,33 @@ git commit -m "feat: agregar rate limiting contra fuerza bruta"
 # Subir cambios
 git push -u origin feature/auth
 ```
+
+## 9. Despliegue de Producción con Docker Compose
+
+Para desplegar la aplicación completa (Base de datos PostgreSQL, Backend Express API y Frontend React SPA servido por Nginx) en un servidor de producción utilizando Docker Compose, sigue estos pasos:
+
+1. **Preparar variables de entorno:**
+   Copia la plantilla de producción en la raíz del proyecto para crear el archivo `.env`:
+   ```bash
+   cp .env.prod.example .env
+   ```
+
+2. **Configurar el archivo `.env`:**
+   Edita el archivo `.env` configurando los siguientes parámetros críticos para producción:
+   - `VITE_API_URL`: **Muy Importante**. Establécelo como la URL pública del API a la que se conectará el navegador del cliente (ej. `http://<IP_PÚBLICA_SERVIDOR>:3000` o `https://api.dnamusic.co`). *Nota: Durante la fase de construcción de la imagen de frontend, Vite embeberá esta URL en los bundles de JS*.
+   - `CORS_ORIGIN`: El origen del cliente (ej. `http://<IP_PÚBLICA_SERVIDOR>` o `https://dnamusic.co`).
+   - `DB_PASSWORD`: Una contraseña fuerte para la base de datos PostgreSQL.
+   - `RUN_SEED`: `true` para sembrar los datos iniciales de prueba (Admin/Operadores) en la primera corrida.
+
+3. **Iniciar los servicios con Docker Compose:**
+   Ejecuta el comando de construcción e inicio:
+   ```bash
+   docker compose up -d --build
+   ```
+
+4. **Verificación:**
+   - El **Frontend** estará disponible en el puerto expuesto de HTTP (puerto `80` por defecto en `.env`), servido eficientemente por **Nginx**.
+   - El **Backend** estará disponible en el puerto `3000` (o el configurado en `BACKEND_PORT`).
+   - La base de datos ejecutará automáticamente el script `start.sh` del backend para sincronizar el esquema de Prisma y ejecutar el seed de datos.
+   - Los datos de PostgreSQL se persisten en el volumen `pgdata`, y las imágenes de perfil subidas se persisten en el volumen local `./api/uploads`.
+
