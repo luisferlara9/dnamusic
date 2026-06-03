@@ -2,6 +2,9 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Estudiantes from './pages/Estudiantes';
+
+import DashboardLayout from './layouts/DashboardLayout';
 
 // Protected Route Wrapper
 const ProtectedRoute = () => {
@@ -15,7 +18,7 @@ const ProtectedRoute = () => {
     );
   }
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  return isAuthenticated ? <DashboardLayout /> : <Navigate to="/login" replace />;
 };
 
 function App() {
@@ -23,14 +26,14 @@ function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       
-      {/* Protected Routes */}
-      <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      {/* Protected Routes wrapped in DashboardLayout */}
+      <Route path="/dashboard" element={<ProtectedRoute />}>
+        <Route index element={<Dashboard />} />
+        <Route path="estudiantes" element={<Estudiantes />} />
       </Route>
 
       {/* Fallback */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }
