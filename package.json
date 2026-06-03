@@ -1,0 +1,16 @@
+{
+  "name": "dnamusic",
+  "version": "1.0.0",
+  "description": "> Prueba técnica para Desarrollador Backend Jr.",
+  "main": "index.js",
+  "scripts": {
+    "install:all": "npm install && npm install --prefix api && npm install --prefix web",
+    "dev": "concurrently \"npm run dev --prefix api\" \"npm run dev --prefix web\" --kill-others --names \"API,WEB\" -c \"bgBlue.bold,bgMagenta.bold\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
