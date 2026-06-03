@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Estudiantes from './pages/Estudiantes';
+import Sedes from './pages/Sedes';
 
 import DashboardLayout from './layouts/DashboardLayout';
 
@@ -30,6 +31,7 @@ function App() {
       <Route path="/dashboard" element={<ProtectedRoute />}>
         <Route index element={<Dashboard />} />
         <Route path="estudiantes" element={<Estudiantes />} />
+        <Route path="sedes" element={<Sedes />} />
       </Route>
 
       {/* Fallback */}
